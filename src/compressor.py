@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class BackupCompressor:
-    """Compacta uma pasta inteira em um .zip com data/hora no nome."""
+    #Compacta uma pasta inteira em um .zip com data/hora no nome.
 
     def __init__(self, source_dir, output_dir):
         self.source = Path(source_dir)
@@ -16,7 +16,7 @@ class BackupCompressor:
 
     def compress(self) -> Path:
         if not self.source.exists():
-            raise FileNotFoundError(f"Pasta de origem não existe: {self.source}")
+            raise FileNotFoundError(f"Pasta de origem não existente: {self.source}")
 
         nome = f"backup_{datetime.now():%Y%m%d_%H%M%S}.zip"
         destino = self.output / nome

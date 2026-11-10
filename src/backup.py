@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 
 class BackupCleaner:
-    """Mantém só os N backups locais mais recentes."""
+    #Mantém só os 5 backups locais mais recentes.
 
     def __init__(self, pasta, manter=5):
         self.pasta = Path(pasta)
@@ -16,11 +16,11 @@ class BackupCleaner:
         excedentes = zips[:-self.manter] if self.manter > 0 else zips
         for velho in excedentes:
             velho.unlink()
-            logger.info("Removido backup antigo: %s", velho.name)
+            logger.info("Este backup antigo foi removido: %s", velho.name)
 
 
 class BackupJob:
-    """Orquestra: compactar -> enviar pra nuvem -> limpar antigos."""
+    #Orquestra: compactar - enviar pra nuvem - limpar antigos.
 
     def __init__(self, compressor, storage, cleaner):
         self.compressor = compressor
@@ -28,7 +28,7 @@ class BackupJob:
         self.cleaner = cleaner
 
     def run(self) -> bool:
-        logger.info("=== Início do backup ===")
+        logger.info("=== Inícializando o backup ===")
         try:
             zip_path = self.compressor.compress()
             enviado = self.storage.upload(zip_path)
@@ -39,5 +39,5 @@ class BackupJob:
             logger.info("=== Backup finalizado ===")
             return enviado
         except Exception as e:
-            logger.error("Backup falhou: %s", e)
+            logger.error("Falha no Backup: %s", e)
             return False

@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class CloudStorage(ABC):
-    """Contrato: qualquer nuvem (S3, Drive...) precisa implementar upload()."""
+    #Contrato: qualquer nuvem (S3, Drive...) precisa implementar upload().
 
     @abstractmethod
     def upload(self, arquivo: Path) -> bool:
@@ -14,12 +14,12 @@ class CloudStorage(ABC):
 
 
 class S3Storage(CloudStorage):
-    """Envia arquivos para um bucket AWS S3."""
+    #Envia arquivos para um bucket AWS S3.
 
     def __init__(self, bucket, access_key, secret_key, region, client=None):
         self.bucket = bucket
         if client is None:
-            import boto3  # import aqui: testes não precisam do boto3 instalado
+            import boto3  # import aqui, testes não precisam do boto3 instalado
             client = boto3.client(
                 "s3",
                 aws_access_key_id=access_key,
@@ -42,7 +42,7 @@ import shutil
 
 
 class LocalStorage(CloudStorage):
-    """Nuvem simulada: copia o zip pra uma pasta local (pra testar sem AWS)."""
+    #Nuvem simulada: copia o zip pra uma pasta local (pra testar sem AWS).
 
     def __init__(self, destino):
         self.destino = Path(destino)
@@ -55,4 +55,37 @@ class LocalStorage(CloudStorage):
             return True
         except Exception as e:
             logger.error("Falha no upload simulado: %s", e)
+            return False
+
+
+class CloudRestore(ABC):
+    #Contrato: qualquer nuvem precisa saber baixar um arquivo de volta.
+
+    @abstractmethod
+    def download(self, object_key: str, destino: Path) -> bool:
+        ...
+
+
+class S3Restore(CloudRestore):
+    #Baixa arquivos do S3 — usa um usuário só de leitura, separado do backup-script.
+
+    def __init__(self, bucket, access_key, secret_key, region, client=None):
+        self.bucket = bucket
+        if client is None:
+            import boto3
+            client = boto3.client(
+                "s3",
+                aws_access_key_id=access_key,
+                aws_secret_access_key=secret_key,
+                region_name=region,
+            )
+        self.client = client
+
+    def download(self, object_key: str, destino: Path) -> bool:
+        try:
+            self.client.download_file(self.bucket, object_key, str(destino))
+            logger.info("Restaurado do S3: %s -> %s", object_key, destino)
+            return True
+        except Exception as e:
+            logger.error("Falha na restauração: %s", e)
             return False
